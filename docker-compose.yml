@@ -1,0 +1,43 @@
+version: '3.7'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./secrets:/secrets
+    environment:
+      - PROMETHEUS_USERNAME_FILE=/secrets/credentials.json
+      - PROMETHEUS_PASSWORD_FILE=/secrets/credentials.json
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - monitoring
+
+  airbyte-metrics:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: airbyte-metrics
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./main.py:/app/main.py
+      - ./config.py:/app/config.py
+      - ./secrets/.env:/app/.env  # Explicitly mount .env file
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+volumes:
+  grafana-storage:
+
+networks:
+  monitoring:
+    driver: bridge

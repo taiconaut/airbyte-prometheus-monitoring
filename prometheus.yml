@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 60s
+
+remote_write:
+  - url: https://prometheus-prod-24-prod-eu-west-2.grafana.net/api/prom/push
+    basic_auth:
+      username: ${PROMETHEUS_USERNAME}
+      password: ${PROMETHEUS_PASSWORD}
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: airbyte-metrics
+    static_configs:
+      - targets: ["airbyte-metrics:8000"]  # Use Docker service name
